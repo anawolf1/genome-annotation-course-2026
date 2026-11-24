@@ -1,0 +1,6 @@
+genes before filter: 27411
+genes after filter:  27411
+mRNAs after filter:  30164
+longest proteins:    27411
+AED>=0.5: 673 transcripts, 244 with Pfam (36.3%)
+AED<0.5 : 29492 transcripts, 23458 with Pfam (79.5%)

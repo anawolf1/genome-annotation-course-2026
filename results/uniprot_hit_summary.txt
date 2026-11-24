@@ -1,0 +1,8 @@
+filtered proteins:            30164
+with UniProt hit:             22787 (75.5%)
+with TAIR10 hit:              29690 (98.4%)
+'Protein of unknown function': 7377
+hits to 'uncharacterized':    501
+--- protein length with vs without UniProt hit (aa) ---
+with_hit: n=22787 mean_len=448 short(<100aa)=1070 (4.7%)
+no_hit: n=7377 mean_len=277 short(<100aa)=1813 (24.6%)
