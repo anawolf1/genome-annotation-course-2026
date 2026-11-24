@@ -34,7 +34,9 @@ rep_table.m$fam <- factor(rep_table.m$fam, levels = c(
 rep_table.m$distance <- as.numeric(rep_table.m$variable) / 100 # as it is percent divergence
 
 # Question:
-# rep_table.m$age <- ??? # Calculate using the substitution rate and the formula provided in the tutorial
+# Insertion age: T = K / 2r, r = 8.22e-9 substitutions/site/year (approximate)
+r <- 8.22e-9
+rep_table.m$age <- rep_table.m$distance / (2 * r) # years
 
 
 # options(scipen = 999)
@@ -48,6 +50,7 @@ ggplot(rep_table.m, aes(fill = fam, x = distance, weight = value / 1000000)) +
   scale_fill_brewer(palette = "Paired") +
   xlab("Distance") +
   ylab("Sequence (Mbp)") +
+  scale_x_continuous(sec.axis = sec_axis(~ . / (2 * r) / 1e6, name = "Approximate insertion age (Mya)")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 9, hjust = 1), plot.title = element_text(hjust = 0.5))
 
 ggsave(filename = "plots/TE_landscape_divergence.pdf", width = 10, height = 5, useDingbats = F)

@@ -4,7 +4,7 @@ library(tidyverse)
 # ============================================================================
 # Settings for your GENESPACE run
 # ============================================================================
-wd <- "/data/users/$USER/genome_annotation_course/output/comparisons/GENESPACE"
+wd <- file.path("/data/users", Sys.getenv("USER"), "genome_annotation_course/output/comparisons/GENESPACE")
 focal_genome <- "Rab_R1" # Must match a genome in the pangenome table.
 
 options(tibble.width = Inf)

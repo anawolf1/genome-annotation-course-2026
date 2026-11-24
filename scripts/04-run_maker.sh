@@ -23,7 +23,7 @@ AUGUSTUS_CONFIG_PATH="$COURSEDIR/tools/MAKER/augustus_config"
 # into your project root, then edit maker_opts.ctl:
 # genome = your genome FASTA; est = your Trinity FASTA; rmlib = your EDTA TE library.
 # Protein references already point to the course directory.
-# Submit from the project root: sbatch scripts/XX-run_maker.sh
+# Submit from the project root: sbatch scripts/04-run_maker.sh
 # The copy below uses YOUR EDITED project files, then runs MAKER in output/MAKER.
 unset SINGULARITY_BIND APPTAINER_BIND SINGULARITY_TMPDIR
 mkdir -p "$OUTDIR/tmp"
