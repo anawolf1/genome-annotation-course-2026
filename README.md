@@ -26,9 +26,14 @@ The Flye assembly was chosen over hifiasm and LJA because its size matched the k
     │   ├── EDTA/                  # TE library and genome-wide TE annotation
     │   ├── LTR_full_length/       # TEsorter on intact LTR-RTs + identity plots
     │   ├── TEsorter_TElib/        # TEsorter on Copia/Gypsy sequences of the TE library
-    │   └── MAKER/                 # gene annotation
+    │   ├── MAKER/                 # gene annotation (final/ = filtered, renamed models)
+    │   └── comparisons/           # BLASTp, functional annotation, GENESPACE
+    ├── figures/            # figures used in the report (copied from output/)
+    ├── results/            # small summary tables (TE summary, BUSCO, AGAT, UniProt, FLC)
     ├── maker_*.ctl         # MAKER control files (edited maker_opts.ctl)
     └── README.md
+
+`data/`, `output/` and `logs/` are not in the repository (large files; see `.gitignore`).
 
 ## Scripts (execution order)
 
@@ -43,8 +48,16 @@ The Flye assembly was chosen over hifiasm and LJA because its size matched the k
 | `07-run_TE_plots.sh` → `04-annotation_circlize.R`, `06-plot_div.R` | samtools, R (circlize, ggplot2) | TE density along contigs; TE divergence landscape |
 | `08-clade_abundance.sh` | awk | Copies and bp per Copia/Gypsy clade (TEsorter clades of library families joined to `TEanno.gff3`) |
 | `09-merge_maker.sh` | MAKER `gff3_merge`, `fasta_merge` | Merge the 170 per-contig MAKER results into genome-wide GFF3 and FASTA |
+| `10-filter_maker.sh` | MAKER tools, InterProScan 5.70 (Pfam), SeqKit, AGAT 1.4.1 | Rename models (prefix `RAB`), Pfam/GO domains, AED distribution, quality filter, filtered + longest-isoform FASTAs, annotation statistics |
+| `11-run_busco.sh` | BUSCO 5.4.2 (brassicales_odb10) | Completeness of the longest protein and transcript per gene |
+| `12-run_blastp.sh` | BLAST+ 2.15.0 | BLASTp of filtered proteins vs reviewed plant UniProt and TAIR10; best hit per protein |
+| `13-add_functions_and_stats.sh` | MAKER `maker_functional_*`, awk | Add UniProt names to FASTA/GFF3; hit statistics; locate *FLC* (AT5G10140) |
+| `14-prepare_genespace.sh` | awk, coreutils | BED + peptide files for Rab_R1, TAIR10, Etna_2, Altai_5, Est_0; ID consistency check |
+| `16-run_genespace.sh` → `15-genespace.R` | GENESPACE (OrthoFinder + MCScanX) | Orthogroups, synteny and TAIR10-anchored pan-gene table |
+| `17-run_process_pangenome.sh` → `17-process_pangenome.R` | R (tidyverse) | Core / accessory / accession-specific entries; copy-variable core entries |
+| `18-run_riparian.sh` → `18-riparian.R` | GENESPACE | Riparian synteny plots (Rab_R1 vs TAIR10; all five genomes) |
 
-Scripts 01, 02, 04 and the R scripts `03-full_length_LTRs_identity_copy.R`, `04-annotation_circlize.R`, `06-plot_div.R` are course scripts adapted to this project (paths, resources, input names); `05-parseRM.pl` is called from the course directory. Scripts 03-run, 05, 06, 07, 08 and 09 were written for this project, following the commands in the course handout where available.
+Scripts 01, 02, 04 and the R scripts `03-full_length_LTRs_identity_copy.R`, `04-annotation_circlize.R`, `06-plot_div.R` are course scripts adapted to this project (paths, resources, input names); `05-parseRM.pl` is called from the course directory. Scripts 03-run, 05–14, 16, 17-run and 18-run were written for this project, following the commands in the course handouts where available; `15-genespace.R`, `17-process_pangenome.R` and `18-riparian.R` wrap or adapt course code.
 
 ## Results
 
@@ -137,17 +150,56 @@ Clade totals (Copia 2.07 Mb, Gypsy 6.35 Mb) agree with the EDTA superfamily summ
 
 **Interpretation:** Athila is the most abundant LTR clade (4.2 Mb, two-thirds of Gypsy sequence), but it is present mostly as fragments: ~74 annotated copies per intact element, compared with ~8 for Ale and the other Copia clades. This supports the conclusions from LTR identity and the divergence landscape: Gypsy (especially Athila) accumulated in an older amplification wave and has since decayed, while Copia (especially Ale) is dominated by recent, still-intact insertions.
 
-## Gene annotation (in progress)
+## Gene annotation
 
-MAKER was run with the Flye assembly, the Trinity transcriptome (`est2genome=1`), TAIR10 + UniProt proteins (`protein2genome=1`), Augustus (`arabidopsis` model), the EDTA TE library (`rmlib`) and PTREP20 repeat proteins. It finished all 170 contigs in 5 h 05 min; per-contig results were merged with `scripts/09-merge_maker.sh`.
+### 6. Gene models: MAKER, filtering and quality
 
-| Metric (before filtering) | Rab-R1 | Lian et al. 2024 |
+MAKER was run with the Flye assembly, the Trinity transcriptome (`est2genome=1`), TAIR10 + UniProt proteins (`protein2genome=1`), Augustus (`arabidopsis` model), `alt_splice=1`, the EDTA TE library (`rmlib`) and PTREP20 repeat proteins. It finished all 170 contigs in 5 h 05 min. Models were merged (`09`), renamed with the prefix `RAB`, annotated with Pfam/GO and filtered (`10`). Files: `results/summary.txt`, `results/annotation.stat`, `results/short_summary*.txt`.
+
+| Metric | Rab-R1 | Lian et al. 2024 |
 |---|---|---|
 | Gene models | 27,411 | 27,246–28,989 protein-coding genes per accession (Col-0: 27,445) |
-| Transcripts / proteins | 30,165 | — |
-| Transcripts with AED < 0.5 | 29,492 (97.8%) | — |
+| mRNAs (isoforms per gene) | 30,164 (1.1) | — |
+| Mean / median gene length | 2,128 / 1,749 bp | — |
+| Mean exons per mRNA | 5.5 | — |
+| Single-exon genes | 6,559 (23.9%) | — |
+| BUSCO proteins, longest isoform (brassicales_odb10, n = 4,596) | C 96.9% (S 95.3%, D 1.6%), F 0.5%, M 2.6% | — |
+| BUSCO transcripts, longest isoform | C 97.9% (S 93.9%, D 4.0%), F 0.5%, M 1.6% | — |
 
-**Interpretation:** the raw gene count lies within the range reported for *A. thaliana* accessions, suggesting that repeat masking with the EDTA library prevented TE-derived genes from inflating the annotation. Nearly all models are well supported by evidence (AED < 0.5); this is expected because `keep_preds=0` discards ab initio predictions without transcript or protein support. Filtering, BUSCO and functional annotation follow.
+**AED and Pfam:** 29,492 of 30,165 transcripts (97.8%) have AED < 0.5. Of these, 79.5% carry a Pfam domain, against 36.3% of the 673 transcripts with AED ≥ 0.5: models poorly supported by evidence are less likely to be real protein-coding genes.
+
+**Interpretation:** gene number and BUSCO completeness (96.9%, few duplicates) indicate a complete, non-redundant annotation comparable to published *A. thaliana* accessions. The quality filter (`quality_filter.pl -s`: AED < 1 and/or Pfam) removed no gene models, because with `keep_preds=0` MAKER only keeps models with some evidence support (AED < 1); a stricter cut-off (e.g. AED < 0.5 without Pfam) would remove at most 673 transcripts.
+
+### 7. Functional annotation and *FLC*
+
+Files: `results/uniprot_hit_summary.txt`, `results/FLC_candidates.txt`.
+
+| Metric | Value |
+|---|---|
+| Filtered proteins | 30,164 |
+| With a reviewed UniProt (Viridiplantae) hit, e-value < 1e-5 | 22,787 (75.5%) |
+| With a TAIR10 hit | 29,690 (98.4%) |
+| Mean length with / without UniProt hit | 448 / 277 aa |
+| Short (< 100 aa) with / without UniProt hit | 4.7% / 24.6% |
+
+**Interpretation:** almost every protein has a TAIR10 homolog, as expected within one species, whereas only three quarters match the smaller set of experimentally reviewed UniProt proteins. Proteins without a UniProt hit are on average shorter and about five times as often < 100 aa (24.6% vs 4.7%), so this set is enriched in fragmented or spurious models and in lineage-specific genes.
+
+**FLC:** `RAB0016291-RA` (contig_167: 187,580–193,585, + strand) has *FLC* (AT5G10140) as its best TAIR10 hit (89.6% identity over 192 aa, e-value 4e-119), carries the MADS-box (PF00319) and K-box (PF01486) domains and is well supported (AED 0.08). Other hits (`RAB0002394`, `RAB0021879`, 57–71% identity) are most likely paralogous MADS-box genes of the *FLC*/*MAF* clade.
+
+### 8. Pangenome: Rab-R1, TAIR10, Etna-2, Altai-5, Est-0 (GENESPACE)
+
+Figures: `figures/pangenome_presence_frequency.pdf`, `figures/copy_variable_core_comparison.pdf`, `figures/my_accession_vs_TAIR10*.pdf`, `figures/all_genomes_TAIR10.pdf`.
+
+| Pan-gene entries (TAIR10-anchored) | n | % |
+|---|---|---|
+| Core (all 5 genomes) | 23,761 | 70.9 |
+| Accessory (2–4 genomes) | 7,227 | 21.5 |
+| Accession-specific (1 genome) | 2,548 | 7.6 |
+| **Total** | **33,536** | |
+
+Genes represented per genome: Rab_R1 27,299 (99.6% of its 27,411 models), TAIR10 27,404, Altai_5 28,108, Est_0 27,952, Etna_2 29,026. Copy-variable core entries: 1,472 (all recorded genes) and 490 (syntenic + tandem-array genes only).
+
+**Interpretation:** about 71% of pan-gene entries are shared by all five genomes and the rest are variable, consistent with a large conserved core and a sizeable dispensable fraction in *A. thaliana*. With five genomes the core is larger than in Lian et al. (69 genomes), so percentages are not directly comparable. The drop from 1,472 to 490 copy-variable entries when only syntenic/array genes are counted shows that most copy-number differences involve non-syntenic copies, which can be genuine duplications but also annotation or assembly artefacts.
 
 ## Problems encountered and how they were handled
 
@@ -155,12 +207,8 @@ MAKER was run with the Flye assembly, the Trinity transcriptome (`est2genome=1`)
 - **EDTA out of memory:** the EDTA job (96 GB) was OOM-killed after 26 h, during the final post-annotation statistics step (`TE.fa.stat*`). All outputs used here (`TElib.fa`, `TEanno.gff3`, `TEanno.sum`, `intact.gff3`, `RM.out`) had already been written, so EDTA was not rerun.
 - **`apptainer` not available on the login node:** all container steps, including R plotting, were run as small SLURM jobs.
 - **Slurm controller outage (27.10):** `sbatch` failed with "Unable to contact slurm controller"; the MAKER merge was submitted once the scheduler was back.
+- **Quality filter removed no genes:** see section 6; reported as an observation, not changed.
 - **parseRM input not found:** with `apptainer exec -C` the container did not start in the working directory; fixed with `--pwd "$PWD"` and an absolute input path.
-
-## To do
-
-- MAKER: filter gene models, AED distribution plot, BUSCO, functional annotation (InterProScan)
-- GENESPACE / OrthoFinder comparison with other accessions; FLC characterization
 
 ## References
 
