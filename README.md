@@ -7,7 +7,7 @@
 ## Input data
 
 | Input | Source |
-|---|---|---|
+|---|---|
 | Genome assembly | Flye assembly from the Assembly course (147.2 Mb, 170 contigs, BUSCO 100%, QV 61.6) |
 | Transcriptome | Trinity assembly (accession Sha, shared course RNA-seq) |
 | CDS for EDTA | TAIR10 representative CDS (course directory) |
