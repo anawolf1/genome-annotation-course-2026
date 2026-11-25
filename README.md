@@ -1,18 +1,17 @@
 # Organization and annotation of eukaryote genomes — *Arabidopsis thaliana* Rab-R1
 
-**Course:** Organization and annotation of Eukaryote genomes (UE-SBL.30004), University of Fribourg / Bern, autumn 2026
-**Student:** Ana Wolf Ruiz
-**Accession:** Rab-R1 (Madeira genetic group in Lian et al. 2024)
-**Cluster:** IBU HPC (SLURM, partition `pibu_el8`), project directory `/data/users/awolfruiz/genome_annotation_course`
+**Course:** Organization and annotation of Eukaryote genomes, University of Fribourg / Bern, HS2026<br>
+**Accession:** Rab-R1 (Madeira genetic group in Lian et al. 2024)<br>
+**Cluster:** IBU HPC <br>
 
 ## Input data
 
 | Input | Source | Path in project |
 |---|---|---|
-| Genome assembly | Flye assembly from the Assembly course (147.2 Mb, 170 contigs, BUSCO 100%, QV 61.6) | `data/assemblies/assembly.fasta` |
-| Transcriptome | Trinity assembly (accession Sha, shared course RNA-seq) | `data/transcripts/trinity.Trinity.fasta` |
-| CDS for EDTA | TAIR10 representative CDS (course directory) | `/data/courses/genome_annotation_resources/2026/data/` |
-| Proteins for MAKER | TAIR10 representative peptides + UniProt Viridiplantae (reviewed) | course directory |
+| Genome assembly | Flye assembly from the Assembly course (147.2 Mb, 170 contigs, BUSCO 100%, QV 61.6) |
+| Transcriptome | Trinity assembly (accession Sha, shared course RNA-seq) |
+| CDS for EDTA | TAIR10 representative CDS (course directory) |
+| Proteins for MAKER | TAIR10 representative peptides + UniProt Viridiplantae (reviewed) |
 
 The Flye assembly was chosen over hifiasm and LJA because its size matched the k-mer genome size estimate (GenomeScope 144.6 Mb) and it had the best BUSCO completeness and Merqury QV.
 
@@ -57,7 +56,10 @@ The Flye assembly was chosen over hifiasm and LJA because its size matched the k
 | `17-run_process_pangenome.sh` → `17-process_pangenome.R` | R (tidyverse) | Core / accessory / accession-specific entries; copy-variable core entries |
 | `18-run_riparian.sh` → `18-riparian.R` | GENESPACE | Riparian synteny plots (Rab_R1 vs TAIR10; all five genomes) |
 
-Scripts 01, 02, 04 and the R scripts `03-full_length_LTRs_identity_copy.R`, `04-annotation_circlize.R`, `06-plot_div.R` are course scripts adapted to this project (paths, resources, input names); `05-parseRM.pl` is called from the course directory. Scripts 03-run, 05–14, 16, 17-run and 18-run were written for this project, following the commands in the course handouts where available; `15-genespace.R`, `17-process_pangenome.R` and `18-riparian.R` wrap or adapt course code.
+- Scripts 01, 02, 04 and the R scripts `03-full_length_LTRs_identity_copy.R`, `04-annotation_circlize.R`, `06-plot_div.R` are course scripts adapted to this project (paths, resources, input names)
+-`05-parseRM.pl` is called from the course directory
+- Scripts 03-run, 05–14, 16, 17-run and 18-run were written for this project, following the commands in the course handouts where available
+- `15-genespace.R`, `17-process_pangenome.R` and `18-riparian.R` wrap or adapt course code.
 
 ## Results
 
@@ -213,8 +215,4 @@ Genes represented per genome: Rab_R1 27,299 (99.6% of its 27,411 models), TAIR10
 ## References
 
 - Lian Q. et al. (2024) A pan-genome of 69 *Arabidopsis thaliana* accessions reveals a conserved genome structure throughout the global species range. *Nature Genetics* 56:982–991.
-- Ou S. et al. (2019) Benchmarking transposable element annotation methods for creation of a streamlined, comprehensive pipeline. *Genome Biology* 20:275 (EDTA).
-- Zhang R.-G. et al. (2022) TEsorter: an accurate and fast method to classify LTR-retrotransposons in plant genomes. *Horticulture Research* 9:uhac017.
-- Neumann P. et al. (2019) Systematic survey of plant LTR-retrotransposons elucidates phylogenetic relationships of their polyprotein domains and provides a reference for element classification. *Mobile DNA* 10:1.
-- Wicker T. et al. (2007) A unified classification system for eukaryotic transposable elements. *Nature Reviews Genetics* 8:973–982.
 - Kagale S. et al. (2014) Polyploid evolution of the Brassicaceae during the Cenozoic era. *Plant Cell* 26:2777–2791.
