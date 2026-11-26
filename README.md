@@ -1,4 +1,4 @@
-# Organization and annotation of eukaryote genomes — *Arabidopsis thaliana* Rab-R1
+# Organization and annotation of eukaryote genomes: *Arabidopsis thaliana* Rab-R1
 
 **Course:** Organization and annotation of Eukaryote genomes, University of Fribourg / Bern, HS2026<br>
 **Accession:** Rab-R1 (Madeira genetic group in Lian et al. 2024)<br>
